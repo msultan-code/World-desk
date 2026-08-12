@@ -259,7 +259,7 @@ button,select,input{font:inherit}.refresh{width:40px;height:40px;border-radius:5
 </head>
 <body>
 <header>
-  <div><div class="brand">WORLD DESK</div><div class="sub">GLOBAL NEWSPAPER INTELLIGENCE · v0.7</div></div>
+  <div><div class="brand">WORLD DESK</div><div class="sub">GLOBAL NEWSPAPER INTELLIGENCE · v0.7.1</div></div>
   <button class="refresh" id="refresh">↻</button>
 </header>
 
@@ -271,7 +271,7 @@ button,select,input{font:inherit}.refresh{width:40px;height:40px;border-radius:5
 
 <section id="pulse">
   <div class="section"><div class="eyebrow">TOP STORIES</div><h1>What the press is leading with</h1><div class="meta" id="freshness">LIVE</div></div>
-  <div class="scopes"><button class="active" data-scope="world">🌍 WORLD</button><button data-scope="arab">العالم العربي</button></div>
+  <div class="scopes"><button class="active" data-scope="world">🌍 WORLD</button><button data-scope="arab" dir="rtl">العالم العربي</button></div>
   <div id="stories"><div class="empty">Tap ↻ to load live headlines.</div></div>
 </section>
 
@@ -307,6 +307,12 @@ const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 const esc=s=>{let d=document.createElement("div");d.textContent=s||"";return d.innerHTML};
 const isAr=s=>/[\\u0600-\\u06FF]/.test(s||"");
 const dir=s=>isAr(s)?"rtl":"ltr";
+function metaLine(x){
+  if((x.lang==="ar") || isAr(x.title) || isAr(x.publication)){
+    return `${esc(x.country)} · ${esc(x.publication)} · المصدر الأصلي ↗`;
+  }
+  return `${esc(x.country_code)} · ${esc(x.publication)} · ↗ Original`;
+}
 const openUrl=u=>"/open?url="+encodeURIComponent(u);
 
 function renderStories(){
@@ -328,7 +334,7 @@ function openCluster(i){
   $("#clusterMeta").textContent=`${x.publication_count} publications · ${x.country_count} countries · ${x.headline_count} headlines`;
   $("#clusterItems").innerHTML=x.items.map(h=>`
     <a class="headline" dir="${dir(h.title)}" href="${openUrl(h.url)}" target="_blank" rel="noopener">
-      <div class="meta">${esc(h.country_code)} · ${esc(h.publication)} · ↗ Original</div>
+      <div class="meta ${dir(h.title)==="rtl"?"rtlMeta":""}">${metaLine(h)}</div>
       <div class="htitle">${esc(h.title)}</div>
     </a>`).join("");
 }
@@ -348,7 +354,7 @@ function renderWall(){
   );
   $("#wall").innerHTML=a.map(x=>`
     <a class="headline" dir="${dir(x.title)}" href="${openUrl(x.url)}" target="_blank" rel="noopener">
-      <div class="meta">${esc(x.country_code)} · ${esc(x.publication)} · ↗ Original</div>
+      <div class="meta ${dir(x.title)==="rtl"?"rtlMeta":""}">${metaLine(x)}</div>
       <div class="htitle">${esc(x.title)}</div>
     </a>`).join("");
 }
