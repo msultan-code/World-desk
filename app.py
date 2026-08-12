@@ -28,6 +28,16 @@ SOURCES = [
  {"name":"Times of India","cc":"IN","country":"India","lang":"en","type":"rss","url":"https://timesofindia.indiatimes.com/rssfeedstopstories.cms"},
  {"name":"The Hindu","cc":"IN","country":"India","lang":"en","type":"rss","url":"https://www.thehindu.com/news/feeder/default.rss"},
  {"name":"Japan Times","cc":"JP","country":"Japan","lang":"en","type":"rss","url":"https://www.japantimes.co.jp/feed/"},
+ {"name":"Masrawy","cc":"EG","country":"Egypt","lang":"ar","type":"html","url":"https://www.masrawy.com/"},
+ {"name":"Al Masry Al Youm","cc":"EG","country":"Egypt","lang":"ar","type":"html","url":"https://www.almasryalyoum.com/"},
+ {"name":"Veto","cc":"EG","country":"Egypt","lang":"ar","type":"html","url":"https://www.vetogate.com/"},
+ {"name":"Al Wafd","cc":"EG","country":"Egypt","lang":"ar","type":"html","url":"https://alwafd.news/"},
+ {"name":"Al Anbaa Kuwait","cc":"KW","country":"Kuwait","lang":"ar","type":"html","url":"https://www.alanba.com.kw/"},
+ {"name":"Al Rai Kuwait","cc":"KW","country":"Kuwait","lang":"ar","type":"html","url":"https://www.alraimedia.com/"},
+ {"name":"Annahar Lebanon","cc":"LB","country":"Lebanon","lang":"ar","type":"html","url":"https://www.annahar.com/"},
+ {"name":"Al Araby Al Jadeed","cc":"LB","country":"Pan-Arab","lang":"ar","type":"html","url":"https://www.alaraby.co.uk/"},
+ {"name":"Independent Arabia","cc":"SA","country":"Pan-Arab","lang":"ar","type":"html","url":"https://www.independentarabia.com/"},
+ {"name":"Hespress","cc":"MA","country":"Morocco","lang":"ar","type":"html","url":"https://www.hespress.com/"},
 ]
 ARAB={"EG","SA","AE","QA","KW","BH","OM","JO","LB","PS","IQ","SY","YE","MA","DZ","TN","LY","SD","MR"}
 UA="WORLD-DESK/0.4"
@@ -130,12 +140,15 @@ button,select,input{font:inherit}.refresh{width:40px;height:40px;border-radius:5
 let DATA={headlines:[],world:[],arab:[],sources:[]}, scope="world";
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 const esc=s=>{let d=document.createElement("div");d.textContent=s||"";return d.innerHTML};
-function renderStories(){let a=DATA[scope]||[];$("#stories").innerHTML=a.length?a.map((x,i)=>`<div class="story ${/[\\u0600-\\u06FF]/.test(x.label)?"rtl":""}"><div class="storytitle"><span class="num">${String(i+1).padStart(2,"0")}</span>${esc(x.label)}</div><div class="meta">${x.publication_count} publications · ${x.country_count} countries · ${x.headline_count} headlines</div></div>`).join(""):`<div class="empty">No multi-source story clusters yet. Refresh again as coverage changes.</div>`}
-function renderWall(){let c=$("#country").value,p=$("#pub").value,q=$("#q").value.toLowerCase();let a=DATA.headlines.filter(x=>(!c||x.country_code===c)&&(!p||x.publication===p)&&(!q||x.title.toLowerCase().includes(q)));$("#wall").innerHTML=a.map(x=>`<a class="headline ${x.lang==="ar"?"rtl":""}" href="${esc(x.url)}" target="_blank"><div class="meta">${esc(x.country_code)} · ${esc(x.publication)}</div><div class="htitle">${esc(x.title)}</div></a>`).join("")}
+function renderStories(){let a=DATA[scope]||[];$("#stories").innerHTML=a.length?a.map((x,i)=>`<a class="story ${/[\\u0600-\\u06FF]/.test(x.label)?"rtl":""}" href="${esc((x.items&&x.items[0]&&x.items[0].url)||"#")}" target="_blank" rel="noopener"><div class="storytitle"><span class="num">${String(i+1).padStart(2,"0")}</span>${esc(x.label)}</div><div class="meta">${x.publication_count} publications · ${x.country_count} countries · ${x.headline_count} headlines</div></a>`).join(""):`<div class="empty">No multi-source story clusters yet. Refresh again as coverage changes.</div>`}
+function searchNorm(v){return (v||"").toLowerCase().normalize("NFKD").replace(/[أإآ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").trim()}
+function renderWall(){let c=$("#country").value,p=$("#pub").value,q=searchNorm($("#q").value);let a=DATA.headlines.filter(x=>(!c||x.country_code===c)&&(!p||x.publication===p)&&(!q||searchNorm(x.title).includes(q)||searchNorm(x.publication).includes(q)));$("#wall").innerHTML=a.map(x=>`<a class="headline ${x.lang==="ar"?"rtl":""}" href="${esc(x.url)}" target="_blank"><div class="meta">${esc(x.country_code)} · ${esc(x.publication)} · ↗ Original</div><div class="htitle">${esc(x.title)}</div></a>`).join("")}
 function renderSources(){let a=DATA.sources||[];$("#sourceList").innerHTML=a.map(x=>`<div class="headline"><div class="htitle">${x.ok?"●":"○"} ${esc(x.source)}</div><div class="meta">${x.ok?x.items.length+" headlines":esc(x.error||"failed")}</div></div>`).join("")}
 function filters(){let cs=[...new Set(DATA.headlines.map(x=>x.country_code))].sort();$("#country").innerHTML='<option value="">All countries</option>'+cs.map(c=>`<option>${c}</option>`).join("");let ps=[...new Set(DATA.headlines.map(x=>x.publication))].sort();$("#pub").innerHTML='<option value="">All publications</option>'+ps.map(p=>`<option>${esc(p)}</option>`).join("")}
 async function refresh(){ $("#status").textContent="Loading live sources…"; try{let r=await fetch("/api/refresh");DATA=await r.json();localStorage.setItem("wd04",JSON.stringify(DATA));filters();renderStories();renderWall();renderSources();let ok=DATA.sources.filter(x=>x.ok).length;$("#status").textContent=`${DATA.headlines.length} headlines · ${ok}/${DATA.sources.length} sources`; }catch(e){$("#status").textContent="Refresh failed";}}
-$("#refresh").onclick=refresh; $$(".tabs button").forEach(b=>b.onclick=()=>{$$(".tabs button").forEach(x=>x.classList.remove("active"));b.classList.add("active");["pulse","headlines","sources"].forEach(v=>$("#"+v).classList.toggle("hidden",v!==b.dataset.view));}); $$(".scopes button").forEach(b=>b.onclick=()=>{$$(".scopes button").forEach(x=>x.classList.remove("active"));b.classList.add("active");scope=b.dataset.scope;renderStories()}); $("#country").onchange=renderWall;$("#pub").onchange=renderWall;$("#q").oninput=renderWall;
+$("#refresh").onclick=refresh;
+setInterval(()=>{renderStories();renderWall();},120000);
+setInterval(()=>{refresh();},300000); $$(".tabs button").forEach(b=>b.onclick=()=>{$$(".tabs button").forEach(x=>x.classList.remove("active"));b.classList.add("active");["pulse","headlines","sources"].forEach(v=>$("#"+v).classList.toggle("hidden",v!==b.dataset.view));}); $$(".scopes button").forEach(b=>b.onclick=()=>{$$(".scopes button").forEach(x=>x.classList.remove("active"));b.classList.add("active");scope=b.dataset.scope;renderStories()}); $("#country").onchange=renderWall;$("#pub").onchange=renderWall;$("#q").oninput=renderWall;
 try{let saved=localStorage.getItem("wd04");if(saved){DATA=JSON.parse(saved);filters();renderStories();renderWall();renderSources();$("#status").textContent="Cached headlines loaded";}}catch(e){}
 </script></body></html>"""
 
