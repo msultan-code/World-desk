@@ -37,6 +37,21 @@ SOURCES = [
     {"name":"سكاي نيوز عربية","cc":"AE","country":"الإمارات","lang":"ar","type":"html",
      "url":"https://www.skynewsarabia.com/","home":"https://www.skynewsarabia.com"},
 
+    {"name":"المصري اليوم","cc":"EG","country":"مصر","lang":"ar","type":"html","url":"https://www.almasryalyoum.com/","home":"https://www.almasryalyoum.com"},
+    {"name":"فيتو","cc":"EG","country":"مصر","lang":"ar","type":"html","url":"https://www.vetogate.com/","home":"https://www.vetogate.com"},
+    {"name":"الوفد","cc":"EG","country":"مصر","lang":"ar","type":"html","url":"https://alwafd.news/","home":"https://alwafd.news"},
+    {"name":"الراي الكويتية","cc":"KW","country":"الكويت","lang":"ar","type":"html","url":"https://www.alraimedia.com/","home":"https://www.alraimedia.com"},
+    {"name":"النهار","cc":"LB","country":"لبنان","lang":"ar","type":"html","url":"https://www.annahar.com/","home":"https://www.annahar.com"},
+    {"name":"العربي الجديد","cc":"LB","country":"العالم العربي","lang":"ar","type":"html","url":"https://www.alaraby.co.uk/","home":"https://www.alaraby.co.uk"},
+    {"name":"اندبندنت عربية","cc":"SA","country":"العالم العربي","lang":"ar","type":"html","url":"https://www.independentarabia.com/","home":"https://www.independentarabia.com"},
+    {"name":"عمون","cc":"JO","country":"الأردن","lang":"ar","type":"html","url":"https://www.ammonnews.net/","home":"https://www.ammonnews.net"},
+    {"name":"هسبريس","cc":"MA","country":"المغرب","lang":"ar","type":"html","url":"https://www.hespress.com/","home":"https://www.hespress.com"},
+    {"name":"الخبر","cc":"DZ","country":"الجزائر","lang":"ar","type":"html","url":"https://www.elkhabar.com/","home":"https://www.elkhabar.com"},
+    {"name":"تونس الرقمية","cc":"TN","country":"تونس","lang":"ar","type":"html","url":"https://ar.tunisienumerique.com/","home":"https://ar.tunisienumerique.com"},
+    {"name":"شفق نيوز","cc":"IQ","country":"العراق","lang":"ar","type":"html","url":"https://shafaq.com/ar","home":"https://shafaq.com/ar"},
+    {"name":"معا","cc":"PS","country":"فلسطين","lang":"ar","type":"html","url":"https://www.maannews.net/","home":"https://www.maannews.net"},
+    {"name":"بوابة الوسط","cc":"LY","country":"ليبيا","lang":"ar","type":"html","url":"https://alwasat.ly/","home":"https://alwasat.ly"},
+
     # Existing international baseline, not expanded in this cycle.
     {"name":"BBC News","cc":"GB","country":"United Kingdom","lang":"en","type":"rss",
      "url":"https://feeds.bbci.co.uk/news/rss.xml","home":"https://www.bbc.com/news"},
@@ -226,11 +241,11 @@ button,select,input{font:inherit}.refresh{width:40px;height:40px;border-radius:5
 .section{padding:18px 16px 9px}.eyebrow{font-size:10px;letter-spacing:.13em;color:#777;font-weight:800}.section h1{font:28px Georgia,serif;margin:5px 0 0}
 .story,.headline{display:block;width:100%;background:none;color:inherit;border:0;border-top:1px solid #202020;padding:14px 16px;text-decoration:none}
 .story{cursor:pointer}
-.story[dir="rtl"],.headline[dir="rtl"]{direction:rtl;text-align:right}
-.story[dir="ltr"],.headline[dir="ltr"]{direction:ltr;text-align:left}
+.story[dir="rtl"],.headline[dir="rtl"]{direction:rtl!important;text-align:right!important;unicode-bidi:plaintext}
+.story[dir="ltr"],.headline[dir="ltr"]{direction:ltr!important;text-align:left!important;unicode-bidi:plaintext}
 .storytitle,.htitle{font:18px/1.35 Georgia,"Times New Roman",serif}
 .story[dir="rtl"] .storytitle,.headline[dir="rtl"] .htitle{font-family:"Geeza Pro","Noto Naskh Arabic",Tahoma,Arial,sans-serif;font-size:19px;line-height:1.55}
-.meta{font-size:10px;color:#777;margin-top:6px}.num{font-size:10px;color:#555;margin-inline-end:7px}
+.meta{font-size:10px;color:#777;margin-top:6px}.story[dir="rtl"] .meta,.headline[dir="rtl"] .meta{direction:rtl;text-align:right;unicode-bidi:isolate}.num{font-size:10px;color:#555;margin-inline-end:7px}
 .controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px}.controls input,.controls select{background:#141414;color:#eee;border:1px solid #292929;border-radius:9px;padding:10px}.controls input{grid-column:1/-1}
 .status{position:fixed;bottom:calc(8px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#1b1b1bef;border:1px solid #333;border-radius:99px;padding:6px 10px;color:#aaa;font-size:10px;z-index:20;white-space:nowrap}
 .hidden{display:none!important}.empty{margin:20px 16px;padding:16px;border:1px dashed #2c2c2c;border-radius:12px;color:#777}
@@ -244,18 +259,18 @@ button,select,input{font:inherit}.refresh{width:40px;height:40px;border-radius:5
 </head>
 <body>
 <header>
-  <div><div class="brand">WORLD DESK</div><div class="sub">GLOBAL NEWSPAPER INTELLIGENCE · v0.6</div></div>
+  <div><div class="brand">WORLD DESK</div><div class="sub">GLOBAL NEWSPAPER INTELLIGENCE · v0.7</div></div>
   <button class="refresh" id="refresh">↻</button>
 </header>
 
 <div class="tabs">
-  <button class="active" data-view="pulse">Pulse</button>
+  <button class="active" data-view="pulse">TOP STORIES</button>
   <button data-view="headlines">Headlines</button>
   <button data-view="sources">Sources</button>
 </div>
 
 <section id="pulse">
-  <div class="section"><div class="eyebrow">GLOBAL PULSE</div><h1>What the press is leading with</h1></div>
+  <div class="section"><div class="eyebrow">TOP STORIES</div><h1>What the press is leading with</h1><div class="meta" id="freshness">LIVE</div></div>
   <div class="scopes"><button class="active" data-scope="world">🌍 WORLD</button><button data-scope="arab">العالم العربي</button></div>
   <div id="stories"><div class="empty">Tap ↻ to load live headlines.</div></div>
 </section>
@@ -364,6 +379,7 @@ async function refresh(){
     filters();renderStories();renderWall();renderSources();
     let ok=DATA.sources.filter(x=>x.ok).length;
     $("#status").textContent=`${DATA.headlines.length} headlines · ${ok}/${DATA.sources.length} sources`;
+    let f=document.getElementById("freshness"); if(f) f.textContent="LIVE · Updated just now";
   }catch(e){
     $("#status").textContent="Refresh failed";
   }
