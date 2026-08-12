@@ -259,7 +259,7 @@ button,select,input{font:inherit}.refresh{width:40px;height:40px;border-radius:5
 </head>
 <body>
 <header>
-  <div><div class="brand">WORLD DESK</div><div class="sub">GLOBAL NEWSPAPER INTELLIGENCE · v0.7.1</div></div>
+  <div><div class="brand">WORLD DESK</div><div class="sub">GLOBAL NEWSPAPER INTELLIGENCE · v0.7.2</div></div>
   <button class="refresh" id="refresh">↻</button>
 </header>
 
@@ -314,29 +314,34 @@ function metaLine(x){
   return `${esc(x.country_code)} · ${esc(x.publication)} · ↗ Original`;
 }
 const openUrl=u=>"/open?url="+encodeURIComponent(u);
+function metaHTML(x){
+  const ar = x.lang==="ar" || isAr(x.title) || isAr(x.publication);
+  if(ar){
+    return `<span class="segment">${esc(x.country||x.country_code||"")}</span><span class="sep">·</span><span class="segment">${esc(x.publication||"")}</span><span class="sep">·</span><span class="segment">المصدر الأصلي</span><span class="external">↗</span>`;
+  }
+  return `<span class="latin">${esc(x.country_code||"")}</span><span class="sep">·</span><span class="latin">${esc(x.publication||"")}</span><span class="sep">·</span><span class="latin">Original</span><span class="external">↗</span>`;
+}
+function headlineCard(x){
+  const ar = x.lang==="ar" || isAr(x.title) || isAr(x.publication);
+  return `<a class="newsCard ${ar?"ar":"en"}" href="${openUrl(x.url)}" target="_blank" rel="noopener"><div class="newsMeta">${metaHTML(x)}</div><div class="newsTitle">${esc(x.title)}</div></a>`;
+}
 
 function renderStories(){
   let a=DATA[scope]||[];
-  $("#stories").innerHTML=a.length?a.map((x,i)=>`
-    <button class="story" dir="${dir(x.label)}" onclick="openCluster(${i})">
-      <div class="storytitle"><span class="num">${String(i+1).padStart(2,"0")}</span>${esc(x.label)}</div>
-      <div class="meta">${x.publication_count} publications · ${x.country_count} countries · ${x.headline_count} headlines · ›</div>
-    </button>`).join(""):`<div class="empty">No multi-source story clusters yet.</div>`;
+  $("#stories").innerHTML=a.length?a.map((x,i)=>{
+    const ar=isAr(x.label);
+    return `<button class="storyCard ${ar?"ar":"en"}" onclick="openCluster(${i})"><div class="storyRow"><div class="storyNo">${String(i+1).padStart(2,"0")}</div><div class="storyBody"><div class="storyTitle">${esc(x.label)}</div><div class="storyMeta">${x.publication_count} publications · ${x.country_count} countries · ${x.headline_count} headlines · ›</div></div></div></button>`;
+  }).join(""):`<div class="empty">No multi-source story clusters yet.</div>`;
 }
-
 function openCluster(i){
   let x=(DATA[scope]||[])[i];
   if(!x)return;
   $("#pulse").classList.add("hidden");
   $("#cluster").classList.remove("hidden");
-  $("#clusterHeader").setAttribute("dir",dir(x.label));
+  $("#clusterHeader").setAttribute("dir",dir(x.label)); $("#clusterHeader").classList.toggle("clusterHeaderRTL",isAr(x.label));
   $("#clusterTitle").textContent=x.label;
   $("#clusterMeta").textContent=`${x.publication_count} publications · ${x.country_count} countries · ${x.headline_count} headlines`;
-  $("#clusterItems").innerHTML=x.items.map(h=>`
-    <a class="headline" dir="${dir(h.title)}" href="${openUrl(h.url)}" target="_blank" rel="noopener">
-      <div class="meta ${dir(h.title)==="rtl"?"rtlMeta":""}">${metaLine(h)}</div>
-      <div class="htitle">${esc(h.title)}</div>
-    </a>`).join("");
+  $("#clusterItems").innerHTML=x.items.map(h=>headlineCard(h)).join("");
 }
 window.openCluster=openCluster;
 
@@ -347,18 +352,9 @@ function searchNorm(v){
 
 function renderWall(){
   let c=$("#country").value,p=$("#pub").value,q=searchNorm($("#q").value);
-  let a=DATA.headlines.filter(x=>
-    (!c||x.country_code===c)&&
-    (!p||x.publication===p)&&
-    (!q||searchNorm(x.title).includes(q)||searchNorm(x.publication).includes(q))
-  );
-  $("#wall").innerHTML=a.map(x=>`
-    <a class="headline" dir="${dir(x.title)}" href="${openUrl(x.url)}" target="_blank" rel="noopener">
-      <div class="meta ${dir(x.title)==="rtl"?"rtlMeta":""}">${metaLine(x)}</div>
-      <div class="htitle">${esc(x.title)}</div>
-    </a>`).join("");
+  let a=DATA.headlines.filter(x=>(!c||x.country_code===c)&&(!p||x.publication===p)&&(!q||searchNorm(x.title).includes(q)||searchNorm(x.publication).includes(q)));
+  $("#wall").innerHTML=a.map(x=>headlineCard(x)).join("");
 }
-
 function renderSources(){
   let a=DATA.sources||[];
   $("#sourceList").innerHTML=a.map(x=>`
