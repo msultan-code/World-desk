@@ -6,7 +6,7 @@ from urllib.parse import urljoin, urlparse, quote
 import httpx, feedparser
 from bs4 import BeautifulSoup
 
-app = FastAPI(title="WORLD DESK v0.6")
+app = FastAPI(title="WORLD DESK v0.8")
 
 # Arabic sources only expanded in this release.
 # Prefer verified RSS endpoints. Use HTML only when the publisher's RSS page
@@ -139,6 +139,7 @@ async def fetch_one(client, src):
             "source":src["name"],
             "ok":len(out)>0,
             "items":out,
+            "home":src["home"],
             "error":"" if out else "No usable headlines returned"
         }
 
@@ -226,6 +227,9 @@ HTML = r"""<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#090909">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="WORLD DESK — global newspaper intelligence. Live headlines clustered across Arabic and international press.">
+<link rel="manifest" href="/manifest.json">
 <title>WORLD DESK</title>
 <style>
 :root{--bg:#090909;--line:#242424;--fg:#f4f4f4;--muted:#777}
@@ -255,11 +259,61 @@ button,select,input{font:inherit}.refresh{width:40px;height:40px;border-radius:5
 .clusterHeader h2{font:25px/1.4 Georgia,serif;margin:6px 0}
 .clusterHeader[dir="rtl"] h2{font-family:"Geeza Pro","Noto Naskh Arabic",Tahoma,Arial,sans-serif}
 .sourceok{color:#ccc}.sourcebad{color:#666}
+
+/* ===== Layout shell: cap + center on large screens ===== */
+header,.tabs,.scopes,.section,.controls,.clusterHeader{max-width:760px;margin-inline:auto}
+#stories,#wall,#sourceList,#clusterItems{max-width:760px;margin-inline:auto}
+
+/* ===== Story cluster cards (TOP STORIES) — styles were missing ===== */
+.storyCard{display:block;width:100%;background:none;color:inherit;border:0;border-top:1px solid #202020;padding:14px 16px;text-align:left;font:inherit;cursor:pointer;transition:background .12s}
+.storyCard:last-child{border-bottom:1px solid #202020}
+.storyCard:hover{background:#141414}
+.storyCard.ar{direction:rtl;text-align:right;unicode-bidi:plaintext}
+.storyRow{display:flex;align-items:flex-start;gap:12px}
+.storyCard.ar .storyRow{flex-direction:row-reverse}
+.storyNo{font-size:12px;color:#555;font-weight:700;font-variant-numeric:tabular-nums;min-width:24px}
+.storyBody{flex:1;min-width:0}
+.storyTitle{font:17px/1.4 Georgia,"Times New Roman",serif}
+.storyCard.ar .storyTitle{font-family:"Geeza Pro","Noto Naskh Arabic",Tahoma,Arial,sans-serif;font-size:18px;line-height:1.6}
+.storyMeta{font-size:10px;color:#777;margin-top:6px}
+.storyCard.ar .storyMeta{direction:rtl;text-align:right}
+
+/* ===== Headline cards (cluster + wall) — styles were missing ===== */
+.newsCard{display:block;width:100%;background:none;color:inherit;border-top:1px solid #202020;padding:14px 16px;text-decoration:none;transition:background .12s}
+.newsCard:last-child{border-bottom:1px solid #202020}
+.newsCard:hover{background:#141414}
+.newsCard.ar{direction:rtl;text-align:right;unicode-bidi:plaintext}
+.newsMeta{font-size:10px;color:#777;display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:6px}
+.newsCard.ar .newsMeta{flex-direction:row-reverse;justify-content:flex-start}
+.segment,.latin{unicode-bidi:isolate}
+.sep{color:#444}
+.external{color:#555}
+.newsTitle{font:17px/1.4 Georgia,"Times New Roman",serif}
+.newsCard.ar .newsTitle{font-family:"Geeza Pro","Noto Naskh Arabic",Tahoma,Arial,sans-serif;font-size:18px;line-height:1.6}
+
+/* ===== Sources: now clickable links to each publication's home ===== */
+.sourceLink{display:block;width:100%;background:none;color:inherit;border:0;border-top:1px solid #202020;padding:14px 16px;text-decoration:none;transition:background .12s}
+.sourceLink:last-child{border-bottom:1px solid #202020}
+.sourceLink:hover{background:#141414}
+.clusterHeaderRTL{direction:rtl;text-align:right}
+
+/* ===== Desktop refinements ===== */
+@media (min-width:680px){
+  header{padding-top:18px;padding-left:20px;padding-right:20px}
+  .tabs,.scopes{padding-left:20px;padding-right:20px}
+  .section{padding:24px 20px 12px}
+  .section h1{font-size:32px}
+  .storyCard,.newsCard,.sourceLink{padding:16px 20px}
+  .storyTitle,.newsTitle{font-size:18px}
+  .clusterHeader{padding:24px 20px 12px}
+  .clusterHeader h2{font-size:27px}
+  .controls{padding:12px 20px;gap:10px}
+}
 </style>
 </head>
 <body>
 <header>
-  <div><div class="brand">WORLD DESK</div><div class="sub">GLOBAL NEWSPAPER INTELLIGENCE · v0.7.2</div></div>
+  <div><div class="brand">WORLD DESK</div><div class="sub">GLOBAL NEWSPAPER INTELLIGENCE · v0.8</div></div>
   <button class="refresh" id="refresh">↻</button>
 </header>
 
@@ -357,11 +411,15 @@ function renderWall(){
 }
 function renderSources(){
   let a=DATA.sources||[];
-  $("#sourceList").innerHTML=a.map(x=>`
-    <div class="headline" dir="${dir(x.source)}">
+  $("#sourceList").innerHTML=a.map(x=>{
+    const href=x.home?esc(x.home):"";
+    const tag=href?"a":"div";
+    const attrs=href?` href="${href}" target="_blank" rel="noopener"`:"";
+    return `<${tag} class="sourceLink" dir="${dir(x.source)}"${attrs}>
       <div class="htitle ${x.ok?"sourceok":"sourcebad"}">${x.ok?"●":"○"} ${esc(x.source)}</div>
-      <div class="meta">${x.ok?x.items.length+" headlines":esc(x.error||"failed")}</div>
-    </div>`).join("");
+      <div class="meta">${x.ok?x.items.length+" headlines · tap to open":esc(x.error||"failed")}</div>
+    </${tag}>`;
+  }).join("");
 }
 
 function filters(){
